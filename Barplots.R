@@ -82,3 +82,39 @@ p_top10_spec <- plot_bar(ps_top10_spec, fill="Species") +
 ggsave("Top10_Species.pdf", plot=p_top10_spec, width=10, height=7)
 
 print("Process finished 4 PDFs have been created.")
+
+
+#### CSV Abundance Table ####
+
+# 1. Load Packages
+library(phyloseq)
+library(dplyr)
+library(tidyr)
+
+# 2. Load and Prepare Data
+ps <- import_biom("/your/HiFi-16S-workflow/Results/results/feature-table-tax_vsearch.biom")
+colnames(tax_table(ps)) <- c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species")
+tax_table(ps) <- gsub("[a-z]__", "", tax_table(ps))
+
+# 3. Transform to Relative Abundance (Percentage)
+# Multiply by 100 to make it easier to read in Excel (%)
+ps_rel <- transform_sample_counts(ps, function(x) (x / sum(x)) * 100)
+
+# 4. Data Extraction and Integration
+# Extract the OTU table
+otu_df <- as.data.frame(otu_table(ps_rel))
+
+# Extract the taxonomy table
+tax_df <- as.data.frame(tax_table(ps_rel))
+
+# Combine both tables using the ASV ID
+master_table <- cbind(tax_df, otu_df)
+
+# 5. Final Organization
+# Add a column containing the ASV ID at the top
+master_table <- master_table %>%
+  mutate(ASV_ID = rownames(master_table)) %>%
+  select(ASV_ID, everything())
+
+# 6. Export .CSV
+write.csv(master_table, "Full_Taxonomic_Abundance_Percentage_Sorata.csv", row.names = FALSE)
