@@ -23,3 +23,19 @@ print(p_alpha)
 
 # Save PDF
 ggsave("Alpha_Diversity.pdf", plot=p_alpha, width=8, height=6)
+
+#### Alpha Diversity Index ####
+
+# 1. Load Packages
+library(phyloseq)
+library(microbiome)
+
+# 2. Calculate All the Alpha Diversity Indexes
+# Use the Function 'Alpha' from Microbiome Package
+alpha_indices <- alpha(ps, index = "all")
+
+# 3. See the Outcomes in R
+print(alpha_indices)
+
+# 4. Export Table in .CSV 
+write.csv(alpha_indices, "Alpha_Diversity_Indices.csv", row.names = TRUE)
